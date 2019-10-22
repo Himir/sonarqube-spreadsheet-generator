@@ -80,3 +80,14 @@ Utilizando uma [planilha de exemplo](https://docs.google.com/spreadsheets/d/1Lmb
     googleCredentialsFilePath =  'caminho-para-arquivo-cliente-google-api.json'
     
     configFilePath =  './caminho-para-arquivo-de-configuracao.json'
+
+
+## Exemplo
+Na pasta *examples* se encontra um exemplo de aplicação, em que são analisadas algumas sprints e gerados gráficos de evolução por métrica. A planilha preenchida se encontra [aqui](https://docs.google.com/spreadsheets/d/1ibhmMlNwDn4PMZFHJAZY7LaQ3jKfyEjzWysYZ2Fys4w/edit#gid=192477666).
+
+![Planilha](./examples/assets/spreadsheet.JPG)
+
+
+
+![Gráficos de evolução](./examples/assets/graphs.JPG)
+
