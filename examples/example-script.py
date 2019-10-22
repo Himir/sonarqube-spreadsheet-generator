@@ -3,7 +3,7 @@ from gspread_formatting import *
 from oauth2client.service_account import ServiceAccountCredentials
 import requests, json
 
-googleCredentialsFilePath = './client_secret.json'
+googleCredentialsFilePath = 'client_secret.json'
 configFilePath = './config.json'
 
 #
@@ -15,7 +15,7 @@ credentials = ServiceAccountCredentials.from_json_keyfile_name(googleCredentials
 client = gspread.authorize(credentials)
 
 # READ FROM JSON CONFIG FILE
-with open(configFilePath , 'r') as file:
+with open(configFilePath, 'r', encoding='utf-8') as file:
     config = json.load(file)
 
 #
@@ -32,15 +32,21 @@ metricsToAnalyze = config['metrics_to_analyze']
 spreadsheetUsers = config['spreadsheet_users']
 firstSprintNumber = config['number_first_sprint']
 currentSprintNumber = config['number_current_sprint']
-cellsIntervalBetweenSprints = config['template_sheet_interval_between_sprints']
+intervalsBetweenSprints = config['template_sheet_interval_between_sprints']
 columns = config['columns']
 initialLine = config['initial_line']
+
 #
+# FUNÇÕES
 #
-def fillWorksheetData():
+def obterDadosSonar():
   session = requests.Session()
   session.auth = sonarToken, ''
   call = getattr(session, 'get')
+
+  # PROJECTS DATA
+  for metric in metricsToAnalyze:
+    vars()[metric] = 0
 
   for project in projectsToAnalyzeTogether:
     callUrl = sonarServerUrl+sonarApiUrl+project+'&metricKeys='
@@ -53,56 +59,51 @@ def fillWorksheetData():
     component = analysisDataJson['component']
 
     for metric in metricsToAnalyze:
-      vars()[metric] = 0
-      
       for measure in component['measures']:
         value = float(measure['value'])
 
         if (measure['metric'] == metric):
-            vars()[metric] += value
-  print("Dados obtidos do Sonar")
+          vars()[metric] += value
+  
+  dictionaryDomain = {}
+  for metric in metricsToAnalyze:
+    dictionaryDomain.update({metric: vars()[metric]})
 
-###
-  print("Montando planilha...")
+  return dictionaryDomain
 
+
+def fillWorksheetData(**dados):
   spreadsheet = client.open(sheetTitle + sheetTitleComplement)
   sheet = spreadsheet.sheet1
 
-  linesToAdd = (((currentSprintNumber-firstSprintNumber) + 1) * cellsIntervalBetweenSprints)
-
-  i = 0
+  cont = 0
+  linesToAdd = (((currentSprintNumber-firstSprintNumber) + 1) * intervalsBetweenSprints)
   for metric in metricsToAnalyze:
-      sheet.update_cell(initialLine + linesToAdd, columns[i], vars()[metric])
-      i += 1
+      sheet.update_cell(initialLine + linesToAdd + cont, columns[0], dados[metric])
+      cont += 1
+
+def fillWorksheet():
+  fillWorksheetData(**(obterDadosSonar()))
 
 ##
 ##
 try:
   print("Abrindo planilha...")
   spreadsheet = client.open(sheetTitle + sheetTitleComplement)
-  
   print("Planilha encontrada. Preenchendo dados...")
-  
-  fillWorksheetData()
-  
+  fillWorksheet()
   print("Concluído. Planilha preenchida.")
-
 except gspread.exceptions.SpreadsheetNotFound:
-  print("Planilha não encontrada! Criando planilha...")
+  print("Planilha não encontrada")
   spreadsheet = client.copy(templateSheetKey, sheetTitle + sheetTitleComplement, True)
 
   print("Planilha criada")
-  
   for u in spreadsheetUsers:
       spreadsheet.share(u, perm_type='user', role='writer')
-  
   print("Planilha compartilhada com usuários")
 
-  print("Preenchendo planilha...")
-  
-  fillWorksheetData()
-  
+  print("Preenchendo dados anteriores ao início da migração...")
+  fillWorksheet(True)
   print("Concluído. Planilha preenchida.")
-
 ####
 ####
