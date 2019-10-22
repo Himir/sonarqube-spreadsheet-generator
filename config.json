@@ -1,0 +1,29 @@
+{
+    "template_sheet_key": "",
+    "sheet_title": "",
+    "variable_sheet_title_complement": "",
+    "spreadsheet_users": [
+        ""
+    ],
+
+    "url_sonar_server": "https://sonar.dtidigital.com.br/",
+    "url_sonar_api": "api/measures/component?component=",
+    "sonar_token": "",
+    "metrics_to_analyze": [
+        "bugs",
+        "code_smells",
+        "ncloc",
+        "coverage"
+    ],
+    "keys_projects_to_analyze": [
+        ""
+    ],
+
+    "number_first_sprint": 1,
+    "number_current_sprint": 1,
+    "template_sheet_interval_between_sprints": 1,
+
+    "columns": [1, 2, 3, 4],
+    "initial_line": 2
+}
+
